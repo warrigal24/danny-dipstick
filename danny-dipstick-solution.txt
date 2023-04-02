@@ -1,0 +1,76 @@
+Danny Dipstick
+By Garry Francis
+For Z-code interpreters
+
+Solution by Garry Francis
+----------------------------------------
+This is a minimal solution. You'll need to EXAMINE lots of things for this solution to make sense. Your ultimate goal is to get a girl's phone number, but you also have three sub-goals. You earn 1 point for each goal achieved. The score is indicated in parentheses as (+A=B), where A is points earned and B is cumulative points earned.
+
+(I) (you're wearing a suit & carrying a hand-written note)
+(X SUIT) (it's daggy)
+(X NOTE) (this is the note your neighbour wrote for you)
+(READ IT) (you need to fix three things about you to pick up chicks)
+(STATUS) (you have bad breath, dorky clothes and poor social skills)
+N
+W
+(X TABLE) (it has an ashtray)
+(X ASHTRAY) (it contains a cigarette butt)
+(GET BUTT) (you drop it and it rolls under the table)
+LOOK UNDER TABLE (you find an instant lottery ticket)
+GET TICKET
+(X IT) (it's a scratchie)
+(READ IT) (scratch lucky symbols panel & get three matching symbols)
+SCRATCH IT (you have three winning symbols, find somewhere to redeem your prize)
+E
+S
+E
+(X SIGN) (there's something printed on it)
+(READ IT) ('Instant lottery tickets redeemd here', just what you need)
+(X MACHINE) (you can't use it yourself, you must give ticket to clerk)
+GIVE TICKET TO CLERK (or REDEEM TICKET, you win $100)
+(X RACK) (there's a big gap under it)
+(X GAP) you'll have to look under the rack to see what's in the gap)
+LOOK UNDER RACK (you find a credit card)
+GET CARD
+(X IT) (it has owner's details embossed on it)
+READ IT (it belongs to Amelia Dickinson)
+(LOOK UNDER RACK) (you find dust and dirt and a dead cockroach)
+(X DUST) (you're allergic to dust & cockroaches are allergic to you)
+W
+N
+W
+(X COLLECTOR) (he has candies)
+(TALK TO HIM) (donations of $5 or more get a box of mints, that could be useful)
+GIVE MONEY TO COLLECTOR (he gives you a box of mints)
+E
+E (you see a girl wearing a green dress and a girl wearing a red dress)
+(X GIRL IN GREEN) (she's a real knockout)
+(TALK TO HER) (she reckons you're dressed like something out of Miami Vice)
+(X GIRL IN RED DRESS) (she looks very sophisticated)
+(TALK TO HER) (she backs away because your breath stinks)
+EAT MINTS (+1=1)
+(STATUS) (your breath is now minty fresh)
+TALK TO GIRL IN RED (her name's Amelia Dickinson and she's lost her credit card)
+GIVE CARD TO AMELIA (+1=2) (she takes you to her store & gets you a nice suit)
+(STATUS) (your new clothing is very classy)
+E
+S
+(S) (you can't go in unless you're a member)
+TALK TO BOUNCER (he lets you in & you see a shiny object on the floor)
+(X OBJECT) (it's a diamond ring)
+GET RING (you hope the owner will give a reward)
+N
+N
+(X VENDOR) (he's selling single long-stemmed roses)
+(TALK TO VENDOR) ($2 for a long-stemmed rose)
+(ASK VENDOR ABOUT ROSE) (you can ask him about various other things, as well)
+BUY ROSE (you acquire a long-stemmed rose for $2)
+(X IT) (it's a symbol of love)
+N
+E
+TALK TO GIRL IN GREEN (her name's Janine and she's lost her diamond ring)
+GIVE RING TO JANINE (+1=3) (her boyfriend coaches you about class and manners)
+(X WOMAN) (she looks upset, perhaps you can cheer her up)
+TALK TO WOMAN (her name's Kathleen and her boyfriend just dumped her)
+GIVE ROSE TO KATHLEEN (+1=4) (she gives you her phone number, woo hoo!)
+***THE END***

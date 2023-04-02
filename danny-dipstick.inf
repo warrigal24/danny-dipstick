@@ -1,0 +1,1668 @@
+!% $OMIT_UNUSED_ROUTINES=1
+!========================================
+! Danny Dipstick
+! Copyright © 2021 Garry Francis
+!========================================
+!Constant DEBUG;
+
+#Ifdef TARGET_ZCODE;
+Zcharacter table + '@{A9}'; !Add copyright symbol
+#Endif;
+
+Constant Story "Danny Dipstick";
+Constant Headline "^Copyright @{A9} 2021 Garry Francis^Type ABOUT for further info and credits.^^";
+
+Array UUID_ARRAY string "UUID://39b3f9e4-d496-11ea-87d0-0242ac130003//";
+#Ifdef UUID_ARRAY;
+#Endif;
+
+Release 1;
+Serial "210701";
+
+Constant DEATH_MENTION_UNDO;
+Constant MANUAL_PRONOUNS;
+Constant MAX_CARRIED = 10;
+Constant MAX_SCORE = 4;
+Constant NUMBER_TASKS = 4;
+Constant TASKS_PROVIDED;
+
+Array task_scores -> 1 1 1 1;
+
+Replace LockSub;
+Replace UnlockSub;
+
+Include "parser";
+Include "verblib";
+
+Attribute legible;
+Attribute minty_breath;
+Attribute nice_clothes;
+Attribute social_skills;
+
+!========================================
+! Initialisation
+!========================================
+[ Initialise;
+  no_implicit_actions = true;
+  move note to player;
+  move suit to player;
+  location = room01;
+  player.description = "You're Danny Dipstick, the sociable single, and you're out to find a girlfriend.";
+  "You're Danny Dipstick, the sociable single. The only trouble is that all the girls hate you because you're a dork. Every Saturday night you go to the local nightclub and every time you strike out and end up going home alone.^^Tonight is going to be different. After picking up some advice from your neighbour, you vow that tonight is the night that you will meet a nice girl and get her phone number. After that, who knows?^^As you stand outside the front lobby of the nightclub, you can't help thinking that you've forgotten something...^";
+];
+
+!========================================
+! Room 1: Outside Feel the Beat Nightclub
+!========================================
+Object room01 "Outside Feel the Beat Nightclub"
+with
+  description "You're standing in the glow of a neon sign in the street outside the Feel the Beat nightclub. The night is calm and peaceful. The nightclub entrance is located to the north and other buildings are located to the east, west and south.",
+  n_to room02,
+  s_to room07,
+  e_to room05,
+  w_to room06,
+  in_to room02,
+  before
+  [;
+    Listen:
+      "Everything is peaceful, except for a deep throbbing from inside the nightclub.";
+  ],
+has light;
+
+!----------------------------------------
+! Hand-written note
+!----------------------------------------
+Object note "hand-written note"
+with
+  name 'hand-written' 'hand' 'written' 'note' 'piece' 'paper',
+  description
+  [;
+    print "Before leaving home this morning, you asked your neighbour for some advice on picking up chicks. He said there were three main points to remember and wrote them down for you on this piece of paper.";
+    if (self hasnt general)
+      print " You would be well-advised to read it.";
+    "";
+  ],
+  before
+  [;
+    Read:
+      give self general;
+      "The note says, 'You're not a bad-looking bloke, but:^1. You have very bad breath.^2. You dress like a goofball.^3. Your social skills are atrocious.^Fix these and you can pick up any chick.'^^You should take this advice very seriously. Type STATUS at any time to see how you're going.";
+  ],
+has legible;
+
+!----------------------------------------
+! Suit
+!----------------------------------------
+Object suit "suit"
+with
+  name 'suit' 'clothes',
+  description
+  [;
+    if (player hasnt nice_clothes)
+      "This is the usual daggy suit that you always wear to the night club.";
+    "This is the nice suit that Amelia picked out for you. You must admit that it looks pretty cool.";
+  ],
+  before
+  [;
+    Disrobe:
+      "I think you should find yourself a girlfriend before you start doing a striptease, especially in a public place.";
+  ],
+has clothing worn;
+
+!----------------------------------------
+! Neon sign
+!----------------------------------------
+Object "neon sign" room01
+with
+  name 'glow' 'blue' 'neon' 'sign',
+  description
+  [;
+    print "It's a large blue neon sign located over the entrance to the nightclub.";
+    if (self hasnt general)
+      print " Perhaps you should read it.";
+    "";
+  ],
+  before
+  [;
+    Read:
+      print "The sign reads, 'Feel the Beat'.";
+      if (self hasnt general)
+      {
+        give self general;
+        print " That's a silly name for a nightclub, although it is very descriptive.";
+      }
+      "";
+  ],
+has legible scenery;
+
+!----------------------------------------
+! Entrance to Feel the Beat nightclub
+!----------------------------------------
+Object "entrance to the Feel the Beat nightclub" room01
+with
+  name 'entrance' 'to' 'feel' 'the' 'beat' 'nightclub' 'night' 'club',
+  description "This is the entrance to the Feel the Beat nightclub. All the action is inside. That's where you'll find the sheilas.",
+  before
+  [;
+    Enter:
+      <<Go n_obj>>;
+  ],
+has scenery;
+
+!----------------------------------------
+! Street outside
+!----------------------------------------
+Object "street outside the entrance" room01
+with
+  name 'street' 'outside',
+  description "This is the street outside the entrance to the nightclub. There's nothing much happening out here. All the action is inside.",
+has scenery;
+
+!----------------------------------------
+! Buildings
+!----------------------------------------
+Object "buildings" room01
+with
+  name 'building' 'buildings//p',
+  description "You can't see the buildings clearly in the dark of night. You'll need to get closer.",
+has pluralname scenery;
+
+!----------------------------------------
+! Rose vendor
+!----------------------------------------
+Object vendor "rose vendor" room01
+with
+  description "It's a man selling single, long-stemmed roses. He looks more like a vagrant than a rose vendor, as he doesn't appear to have had a shower or shave for a week. Nevertheless, he is strategically located where he can catch all the couples leaving the nightclub.",
+  parse_name
+  [ nw;
+    nw = NextWord();
+    if (nw == 'rose' or 'roses//p')
+    {
+      if (NextWord() == 'vendor' or 'man' or 'vagrant')
+        return 2;
+      if (TestScope(rose))
+          return 0;
+      return 1;
+    }
+    if (nw == 'vendor' or 'man' or 'vagrant')
+      return 1;
+    return 0;
+  ],
+  life
+  [;
+    Ask:
+      switch (second)
+      {
+        'babe', 'babes//p', 'bird', 'birds//p', 'chick', 'chicks//p', 'girl', 'girls//p', 'lady', 'ladies//p', 'sheila', 'sheilas//p', 'woman', 'women//p':
+          "~You take it from me, boy. If you want to impress the ladies, you can't do any better than one of my fine, long-stemmed roses.~";
+        'club', 'nightclub':
+          "~Well, you've got Feel the Beat right there in front of you, or you've got High Roller just down there.~ He points to the south. ~That lot are a bit stuck up for my liking. They never buy any of my roses.~";
+        'long-stemmed', 'rose', 'roses//p':
+          "~Just two bucks each and worth every penny.~";
+        default:
+          "~I don't know anything about that.~";
+      }
+    Attack:
+      "He might look like a vagrant, but he could be a returned vet. He could probably kick your butt.";
+    Give, Show:
+      if (noun == credit_card)
+        "~Cash only.~";
+      if (noun == money)
+        <<Buy rose>>;
+      "~What do I want with that?~";
+    Kiss:
+      "You offer him a kiss and he says, ~Thank you sir, but a kiss does not get you a free rose.~";
+    Talk:
+      if (self hasnt general)
+      {
+        give self general;
+        "~Please buy a long-stemmed rose for your sweetheart, sir. Just two dollars and she will love you forever.~";
+      }
+      "~Please buy a long-stemmed rose for your lady, sir. It's the best two dollars you'll ever spend.~";
+  ],
+  before
+  [;
+    Smell:
+      "Phew! You wish you hadn't done that.";
+  ],
+has animate male;
+
+!----------------------------------------
+! Long-stemmed rose
+!----------------------------------------
+Object rose "long-stemmed rose" room01
+with
+  name 'long' 'stemmed' 'long-stemmed' 'rose' 'roses//p',
+  description "A rose is a rose...unless it's a single, long-stemmed rose, then it's a symbol of love.",
+  before
+  [;
+    Smell:
+      "It has a lovely, sweet fragrance. The girls will adore it.";
+    Take:
+      if (self has scenery)
+        "You can't just steal it. This man would kick your butt.";
+    Buy:
+      if (credit_card in player && money notin player)
+        "You flash your newly-acquired credit card and the vendor says, ~Cash only.~";
+      if (money in player)
+      {
+        give self ~scenery;
+        move self to player;
+        money.number = money.number - 2;
+        move vendor to limbo;
+        "You give the man two bucks and he hands you a beautiful, long-stemmed rose. ~Well, that was my last one. I'm heading home to the missus.~ With that, he walks off into the night.";
+      }
+      "You don't have any money.";
+  ],
+has scenery;
+
+!========================================
+! Room 2: Front Lobby
+!========================================
+Object room02 "Front Lobby"
+with
+  description "You're in the front lobby of the Feel the Beat nightclub. You can see a dark room with flashing lights and loud music to the east and a well-lit area to the west. Otherwise, you can leave the club to the south.",
+  s_to room01,
+  e_to room03,
+  w_to room04,
+  out_to room01,
+  before
+  [;
+    Listen:
+      "You can hear loud music to the east and the clinking of glasses to the west.";
+  ],
+has light;
+
+!----------------------------------------
+! Front lobby
+!----------------------------------------
+Object "front lobby" room02
+with
+  name 'front' 'lobby',
+  description "This is where people meet prior to hitting the bar or the dance floor.",
+has scenery;
+
+!----------------------------------------
+! Feel the Beat nightclub
+!----------------------------------------
+Object "Feel the Beat nightclub" room02
+with
+  name 'feel' 'the' 'beat' 'nightclub' 'night' 'club',
+  description "This is your local nightclub. You know it like the back of your hand.",
+  before
+  [;
+    Exit:
+      <<Go s_obj>>;
+  ],
+has scenery;
+
+!----------------------------------------
+! Dark room
+!----------------------------------------
+Object "dark room" room02
+with
+  name 'dark' 'room' 'flashing' 'light' 'lights//p' 'dance' 'floor',
+  description "As this is your local club, you know that the dark room with the flashing lights is where the dance floor is located.",
+has scenery;
+
+!----------------------------------------
+! Well-lit area
+!----------------------------------------
+Object "well-lit area" room02
+with
+  name 'well-lit' 'well' 'lit' 'area' 'bar',
+  description "The well-lit area is where the bar is located.",
+has scenery;
+
+!========================================
+! Room 3: Dance Floor
+!========================================
+Object room03 "Dance Floor"
+with
+  description "Wow, this is how to party! Music is playing loudly and lights are flashing and swirling around the floor. Men and women crowd the room. They are dancing and shouting over the music and generally having a good time. If you plan to meet girls, this is the place to do it. Otherwise, you can leave to the west.",
+  w_to room02,
+  before
+  [;
+    Listen:
+      "The music is very loud. They're playing all the disco hits from the 70s.";
+  ],
+has light;
+
+!----------------------------------------
+! Dance floor
+!----------------------------------------
+Object "dance floor" room03
+with
+  name 'dance' 'floor' 'flashing' 'light' 'lights//p',
+  description "It's too dark to see the dance floor clearly, but when the flashing lights pass over it, you can tell that it's made from timber. You think. Well, maybe. Or maybe not.",
+has scenery;
+
+!----------------------------------------
+! Men and women
+!----------------------------------------
+Object "men and women" room03
+with
+  name 'men//p' 'women//p' 'people//p',
+  description "They appear to be having fun.",
+has pluralname scenery;
+
+!----------------------------------------
+! Girl in green dress
+!----------------------------------------
+Object green_girl "girl in the green dress" room03
+with
+  name 'girl' 'lady' 'woman' 'in' 'wearing' 'green' 'dress' 'janine' 'sullivan',
+  initial
+  [;
+    if (self hasnt general)
+      "A girl wearing a green dress is here.";
+    "Janine is here.";
+  ],
+  description
+  [;
+    print "She's wearing a slinky green dress and looks very pretty. She's got blonde hair, blue eyes and is a real knockout.";
+    if (self hasnt general)
+      print " You should talk to her, Danny.";
+    "";
+  ],
+  life
+  [;
+    Ask:
+      switch (second)
+      {
+        'clothes//p':
+          if (player hasnt nice_clothes)
+            "~Hey, nerd boy, get yourself some decent threads.~";
+          "~Nice suit. Very impressive.~";
+        default:
+          "~I can't hear you over the music.~";
+      }
+    Give, Show:
+      if (player hasnt nice_clothes)
+        "She won't pay any attention to you.";
+      if (self hasnt general)
+        "You don't even know her. You should talk to her first.";
+      if (noun == credit_card && self hasnt general)
+        "Although it's possible that the credit card belongs to her, you should find out who she is first. Try talking to her.";
+      if (noun == credit_card && credit_card hasnt general)
+        "Although it's possible that the credit card belongs to her, you should check the identity on the card first.";
+      if (noun == credit_card)
+        "~That's not mine.~";
+      if (noun ~= ring)
+        "She doesn't want that.";
+      give player social_skills;
+      Achieved(2);
+      move green_girl to limbo;
+      move ring to limbo;
+      move white_girl to room04;
+      print "~Hi, Janine. I found this diamond ring over at High Roller. Is it yours?~^^~Oh my gosh, let me see. Yes, that's mine. See, it's got my initials engraved on it. 'JS'. That's me, Janine Sullivan. Oh here comes my fiance now. Wait 'til I tell him the good news. Hey Robbie, meet Danny. He found my ring.~^^Robbie gives a big smile of relief. ~Thanks dude. What can we do to repay you?~^^Robbie seems like a very well-mannered person. You have an idea. You ask Robbie if he can teach you some social skills. He's more than happy to oblige, so the two of you adjourn to the bar, where it's much quieter, and he coaches you about class and manners, then heads off with Janine. You think you now have a better idea of how to talk to women without being creepy.^";
+      PlayerTo(room04);
+      rtrue;
+    Kiss:
+      if (self hasnt general)
+        "She shrieks and runs across the room. You can't just go around kissing girls that you don't even know.";
+      "Janine smiles politely. ~I like you Danny, but I already told you that I'm getting married. I'm sure my fiance wouldn't approve of that.~";
+    Talk:
+      if (player hasnt nice_clothes)
+         "You approach the girl in the green dress. The reaction is not quite what you expected. ~Oh my god! What are you wearing?~^^~What's wrong? My clothes rule!~^^~Yeah, they ruled like 100 years ago! What do you think this is? Miami Vice?~";
+      if (self has general)
+        "~Hi Janine. What's up?~^^~Oh, hi Danny. Have you by any chance seen my diamond ring any place?~";
+      give self general;
+      give ring general;
+      "You approach the girl in the green dress and try to chat her up. ~Nice suit~, she says. ~That looks really cool.~^^~Thank you. You're not bad yourself, hot mama. My name's Danny Dipstick.~^^~Hi Danny. My name's Janine. I'm just waiting for my fiance. He bought me a really beautiful diamond ring and I lost it. He's out looking for it. It means a lot to me. I'd be so happy if someone finds it and returns it.~";
+  ],
+has animate female;
+
+!----------------------------------------
+! Girl in red dress
+!----------------------------------------
+Object red_girl "girl in the red dress" room03
+with
+  name 'girl' 'lady' 'woman' 'wearing' 'in' 'red' 'dress' 'amelia' 'dickinson',
+  initial
+  [;
+    if (self hasnt general)
+      "A girl wearing a red dress is here.";
+    "Amelia is here.";
+  ],
+  description
+  [;
+    print "She's wearing a red, tight-fitting dress and she looks very sophisticated. She's got brown hair, brown eyes and seems to be wearing some very expensive jewellery.";
+    if (self hasnt general)
+      print " You should try to talk to her, Danny.";
+    "";
+  ],
+  life
+  [;
+    Ask:
+      switch (second)
+      {
+        'clothes//p':
+          "~Oh, my god. Where'd you buy your clothes? J-Mart?~";
+        default:
+          "~I can't help you with that.~";
+      }
+    Give, Show:
+      if (player hasnt minty_breath)
+        "The girl in the red dress blocks her nose and backs away from you.";
+      if (noun ~= credit_card)
+        "~Sorry, but I don't accept gifts from strangers.~";
+      if (self hasnt general)
+        "Although it's possible that the credit card belongs to her, you should find out who she is first. Try talking to her.";
+      if (credit_card hasnt general)
+        "Although it's possible that the credit card belongs to her, you should check the identity on the card first.";
+      give player nice_clothes;
+      Achieved(1);
+      move red_girl to limbo;
+      move credit_card to limbo;
+      print "~This is your lucky day. I found your credit card in the convenience store.~^^~Oh, thank you so much Danny. You're so kind. I owe you one. Name your reward.~^^~Will you go out on a date with me?~^^~Oh, I can't. I have a boyfriend. He had to work tonight, otherwise he'd be here. I tell you what I'll do. If you're looking for a girlfriend, you'll need some nice clothes to impress her. You're dressed like a dork. Come with me to my store and we'll get you kitted out. No charge. That's my gift to you.~^^You and Amelia walk over to Acacia Fashions and she picks out a sophisticated suit for you. You look really good now. Amelia leaves you outside the store and gives you a peck on the cheek. ~Good luck Danny, and thanks again. I have to head home now, as my boyfriend will be home from work soon.~ She gives you a wave and walks off down the street. Remember, you can type STATUS at any time to see your current status.^";
+      PlayerTo(room06);
+      rtrue;
+    Kiss:
+      if (self hasnt general)
+        "The girl in the red dress slaps you across the face. You can't just go around kissing strangers or you might get arrested.";
+      "Amelia smiles sweetly.";
+    Talk:
+      if (player hasnt minty_breath)
+        "You approach the attractive girl in the red dress and she backs away from you. ~Holy crap! Your breath stinks. Have you been eating roadkill or something?~";
+      if (self has general)
+        "~Hi, Amelia.~^^~Oh, hi Danny. I'm so worried. I still can't find my credit card and I've searched my purse three or four times.~";
+      give self general;
+      print "You approach the attractive girl in the red dress and strike up a conversation. ~Hi babe, wanna go talk or something? They call me Danny Dipstick, King of the Night. What's your name?~^^~My name's Amelia. Amelia Dickinson.~ ";
+      if (credit_card has general)
+        print "You can swear that name sounds familiar. ";
+      "She gives you a smile. ~I own Acacia Fashions, the clothing store down the street. I came here to unwind after work.~^^~Oh, yeah? I know Acacia Fashions. Do you have a business card or something?~^^~Sure! It's in my purse with all my other cards.~ She scrounges around in her purse, then her face turns white. ~Oh, no. My credit card is missing! I must have dropped it somewhere. I hope someone finds it and returns it to me. I would owe them big time!~";
+  ],
+has animate female transparent;
+
+!----------------------------------------
+! Purse
+!----------------------------------------
+Object "purse" red_girl
+with
+  name 'purse',
+  description
+  [;
+    print "That belongs to ";
+    if (red_girl hasnt general)
+      print "the girl in the red dress.";
+    else
+      print "Amelia.";
+    " A girl's purse is private. Leave it alone.";
+  ],
+has scenery;
+
+!----------------------------------------
+! Girl in white dress
+!----------------------------------------
+Object white_girl "girl in white dress"
+with
+  name 'girl' 'lady' 'woman' 'in' 'wearing' 'white' 'dress' 'kathleen',
+  initial
+  [;
+    if (self hasnt general)
+      "There's a beautiful woman in a white dress here.";
+    "Kathleen is here.";
+  ],
+  description
+  [;
+    print "She's wearing a white dress and you truly believe that she's the most beautiful woman you've ever laid eyes on.";
+    if (self hasnt general)
+      print " She's standing by herself and appears to be very sad. It looks like she's been crying. Perhaps you could try talking to her to cheer her up.";
+    "";
+  ],
+  life
+  [;
+    Give, Show:
+      if (self hasnt general)
+        "That might be a good idea, but you should really get to know her before you start giving her presents. Try talking to her first.";
+      if (noun ~= rose)
+        "She doesn't seem interested in that. Have you got anything else?";
+      Achieved(3);
+      deadflag = 2;
+      "You hand the rose to Kathleen. Her sad face instantly lights up. She smiles and throws her arms around you. ~Oh, that's so sweet, Danny. You're such a great guy.~^^~It's no trouble. You're worth it.~^^~Do you think I could have your phone number, Danny. That way, we can keep in touch. I'd like to go out with you. That is, if you're available.~^^Saying you're available is the understatement of the century. ~I would love to go out with you!~^^~Great!~ You exchange phone numbers. ~Call me and we'll set up a time to go out.~^^Well, Danny. It looks like you've accomplished your goal. For once in your life, you're a winner. Congratulations!";
+    Kiss:
+      if (self hasnt general)
+        "You kiss her on the cheek and she gives a mixed reaction of happiness and frustration.";
+      "You kiss Kathleen on the cheek and she smiles. It seems that you've cheered her up.";
+    Talk:
+      if (self has general)
+       "~Oh, Danny. Thanks for keeping me company. I'm still so hurt over being dumped. But you seem so kind.~";
+      give self general;
+      "Using your newly learned manners and social skills, you approach the girl in the white dress. She seems to be very sad. ~Hello, what's the matter? How come you're so sad?~^^~Oh, I was in here earlier with my date and he just left with another woman. No reason, no explanation. He just dumped me. How humiliating.~^^~I can't imagine anybody dumping you. I think you're gorgeous. Your date must have been a jerk. My name's Danny. If I can help in any way, just say so.~^^~Thank you Danny. My name's Kathleen.~^^The poor girl. You should try to console her or cheer her up. Maybe you could give her a present?";
+  ],
+has animate female;
+
+!========================================
+! Room 4: Bar
+!========================================
+Object room04 "Bar"
+with
+  description "This is the nightclub's bar. There's a long line of stools in front of the bar, all occupied by bottoms of various shapes and sizes. The bottoms belong to people that are all chatting to one another. Behind the bar, a bartender walks back and forth taking orders and serving drinks. The only exit is to the east.",
+  e_to room02,
+  before
+  [;
+    Listen:
+      "You can hear the patrons talking amongst themselves, like a gaggle of geese, and the occasional clink of glasses.";
+    Smell:
+      if (noun == nothing)
+        "You smell alcohol.";
+  ],
+has light;
+
+!----------------------------------------
+! Bar
+!----------------------------------------
+Object "bar" room04
+with
+  name 'night' 'club^s' 'bar',
+  description "There's a line of beer taps behind the bar and a vast assortment of liquor and wine bottles decorating the back wall.",
+has scenery;
+
+!----------------------------------------
+! Beer taps
+!----------------------------------------
+Object "beer taps" room04
+with
+  name 'tap' 'taps//p',
+  description "They're used for pulling beers.",
+has pluralname scenery;
+
+!----------------------------------------
+! Back wall
+!----------------------------------------
+Object "back wall" room04
+with
+  name 'back' 'wall' 'row' 'rows//p',
+  description "The wall behind the bar has many rows of bottles filled with various wines and spirits and mixers of all sorts.",
+has scenery;
+
+!----------------------------------------
+! Drinks
+!----------------------------------------
+Object "various drinks" room04
+with
+  name 'drink' 'drinks//p' 'beer' 'beers//p' 'bottle' 'bottles//p' 'cocktail' 'cocktails//p' 'liquor' 'liquors//p' 'wine' 'wines//p' 'spirit' 'spirits//p' 'mixer' 'mixers//p',
+  before
+  [;
+    Buy:
+      if (credit_card notin player && money notin player)
+        "You don't have any money.";
+      "The bartender doesn't notice you. Or perhaps he's ignoring you. Either way, it doesn't really matter because you're better off being sober if you want to improve your dating chances.";
+    Drink:
+      "You don't have anything to drink.";
+    Take:
+      "You can't just reach across the bar and take a drink. You'll have to buy one.";
+  ],
+has scenery;
+
+!----------------------------------------
+! Bar stool
+!----------------------------------------
+Object "bar stool" room04
+with
+  name 'stool' 'chair',
+  description "There's more than one.",
+  before
+  [;
+    Enter:
+      "None of the stools are vacant.";
+  ],
+has scenery;
+
+!----------------------------------------
+! Bar stools
+!----------------------------------------
+Object "bar stools" room04
+with
+  name 'stools//p' 'chairs//p',
+  description "The bar stools look very uncomfortable. There are none to spare, so you couldn't sit down on one even if you wanted to.",
+  before
+  [;
+    Enter:
+      "You can only sit on one at a time.";
+  ],
+has pluralname scenery;
+
+!----------------------------------------
+! Bottom
+!----------------------------------------
+Object "bottom" room04
+with
+  name 'bottom' 'bum' 'ass' 'arse',
+  description "There's more than one.",
+  before
+  [;
+    Smell:
+      "Oh, now that is just sick! You can get arrested for that.";
+    Squeeze:
+      "The owner of the bottom spins around and punches you in the mouth. Serves you right.";
+  ],
+has scenery;
+
+!----------------------------------------
+! Bottoms
+!----------------------------------------
+Object "bottoms" room04
+with
+  name 'bottoms//p' 'bums//p' 'asses//p' 'arses//p' 'female' 'male',
+  description "They're mostly male bottoms. You're more interested in female bottoms.",
+  before
+  [;
+    Smell:
+      "Oh, now that is just sick! You can get arrested for that.";
+    Squeeze:
+      "So many to choose from. Eeny meeny miny moe.";
+  ],
+has pluralname scenery;
+
+!----------------------------------------
+! People
+!----------------------------------------
+Object "people" room04
+with
+  name 'people//p' 'patrons//p' 'men//p' 'women//p',
+  description "Several men and women are sitting at the bar, drinking and chatting and having a good time. Unfortunately, none of them seem to want to talk to you.",
+  life
+  [;
+    Talk:
+      "You try talking to one or two of the people at the bar, but the men turn their backs on you and the women tell you to get lost.";
+  ],
+has pluralname scenery;
+
+!----------------------------------------
+! Bartender
+!----------------------------------------
+Object bartender "bartender" room04
+with
+  name 'bartender' 'barman',
+  description "The bartender is a tall man in his upper twenties. He's frantically taking orders, pouring beers and preparing cocktails, as the bar is quite busy tonight.",
+  life
+  [;
+    Ask:
+      "The bartender can't hear you over all the other noise.";
+    Attack:
+      "Luckily for you, you can't reach him behind the bar. If you could, he would probably floor you.";
+    Give, Show:
+      if (noun == money)
+        "The bartender doesn't notice you, even when you wave money at him. Don't worry, your lady-hunting endeavours are more likely to be successful if you're sober.";
+      "The bartender doesn't want that. In fact, he doesn't want anything that you have to offer.";
+    Kiss:
+      "I hope you're joking.";
+    Talk:
+      "You call for the bartender, but you can't seem to get his attention. He's very busy serving the other patrons, who are undoubtedly more important than you.";
+  ],
+has animate male;
+
+!----------------------------------------
+! Small table
+!----------------------------------------
+Object table "small table" room04
+with
+  name 'small' 'table',
+  description
+  [;
+    print "It's a small circular table in a dim corner of the bar. ";
+    <<Search self>>;
+  ],
+  invent
+  [;
+    if (inventory_stage == 2 && (c_style & PARTINV_BIT))
+      rtrue;
+  ],
+  before
+  [;
+    LookUnder:
+      print "When you look under the table, you find";
+      if (butt in nothing)
+      {
+        move butt to location;
+        print " a cigarette butt";
+        if (ticket in nothing)
+          print " and";
+        else
+          ".";
+      }
+      if (ticket in nothing)
+      {
+        move ticket to location;
+        " an instant lottery ticket.";
+      }
+      " nothing, apart from well-trodden carpet.";
+    Take:
+      "You can't just walk around with a table under your arm.";
+  ],
+has static supporter;
+
+!----------------------------------------
+! Ashtray
+!----------------------------------------
+Object ashtray "ashtray" table
+with
+  name 'ashtray' 'ash' 'tray',
+  description
+  [;
+    print "It's a heavy glass ashtray. ";
+    <<Search self>>;
+  ],
+  before
+  [;
+    Take:
+      "You don't smoke, so why would you want to steal the club's ashtray?";
+  ],
+has container open static;
+
+!----------------------------------------
+! Cigarette butt
+!----------------------------------------
+Object butt "cigarette butt" ashtray
+with
+  name 'cigarette' 'butt',
+  description "Ooh, yuck. Just the thought of someone's slobbering lips around this foul-smelling, used cancer stick sends a shiver up your spine.",
+  before
+  [;
+    Smoke:
+      "You don't smoke. Even if you did, you couldn't bring yourself to put this germ-infested butt in your mouth.";
+    Take:
+      if (self hasnt moved)
+      {
+        give self moved;
+        remove self;
+        "As you pick up the vile-looking cigarette butt, you give a shudder, it slips out of your fingers and rolls under the table.";
+      }
+  ],
+has;
+
+!----------------------------------------
+! Instant lottery ticket
+!----------------------------------------
+Object ticket "instant lottery ticket"
+with
+  name 'instant' 'lottery' 'ticket' 'scratchie',
+  description
+  [;
+    print "It's an instant lottery ticket, commonly called a 'scratchie', because you have to scratch it to reveal whether you've won anything.";
+    if (panel hasnt general)
+    {
+      print " This one hasn't been scratched yet.";
+      if (self hasnt general)
+        print " Perhaps you should read it to see the instructions.";
+      "";
+    }
+    " This one has been scratched, revealing that you've won a hundred bucks. You'd better find somewhere like a newsagent or convenience store where you can redeem your prize.";
+  ],
+  before
+  [;
+    Read:
+      give self general;
+      "The instructions on the ticket say, 'Scratch the lucky symbols panel and find three of the same symbol to receive the prize under that symbol.'";
+    Redeem:
+      if (panel hasnt general)
+        "You don't even know if it's a winning ticket.";
+      if (location ~= room05)
+        "You can't redeem it here. Find a newsagent or convenience store that redeems instant lottery tickets.";
+      <<Give self clerk>>;
+    Scratch:
+      <<Scratch panel>>;
+  ],
+  add_to_scope panel,
+has legible;
+
+!----------------------------------------
+! Lucky symbols panel
+!----------------------------------------
+Object panel "lucky symbols panel" ticket
+with
+  name 'lucky' 'symbol' 'symbols//p' 'panel',
+  description
+  [;
+    print "This is the panel that you scratch";
+    if (self hasnt general)
+      " to expose the lucky symbols.";
+    "ed to expose the three winning symbols.";
+  ],
+  before
+  [;
+    Scratch:
+      if (self hasnt general)
+      {
+        give self general;
+        "You scratch the ticket and uncover a koala, a kangaroo, another koala, a platypus, an echidna and another koala. That's three koalas! This ticket is a winner! And it's worth...let me see...one hundred dollars. Woohoo! Now you need to find somewhere to redeem your prize.";
+      }
+      "You can only scratch the ticket once. Besides, you've already won a hundred bucks. Your job now is to go and cash it in.";
+  ],
+has scenery;
+
+!----------------------------------------
+! Charity collector
+!----------------------------------------
+Object collector "charity collector" room04
+with
+  name 'charity' 'collector' 'man',
+  description
+  [;
+    print "He's an old man collecting donations for a charity.";
+    if (mints has scenery)
+      print " You notice that he has a box of candies of some sort.";
+    if (self hasnt general)
+      print " Maybe you could talk to him to find out about his charity.";
+    "";
+  ],
+  life
+  [;
+    Ask:
+      switch (second)
+      {
+        'candy', 'candies//p', 'mint', 'mints//p':
+          give mints general;
+          "~If you make a donation to our charity, I'll give you a box of mints.~";
+        'charity', 'cause', 'society', 'retired', 'adventurers//p', 'pass':
+          "~Our charity is called The Society for Retired Adventurers. I'm sure you've heard of it. We raise money to help adventurers with Post Adventure Stress Syndrome, or PASS.~";
+        'donation', 'donations//p', 'cash', 'money':
+          "~All donations are greatly accepted. The money goes to a good cause.~";
+        default:
+          "~Sorry, I don't have time to chat.~";
+      }
+    Give:
+      if (noun ~= money)
+        "~Thank you for the kind offer, sir, but I can only accept cash donations. If you don't have any money, please come back later when you do. I'll still be here.~";
+      if (money notin player)
+        "You don't have any money. The way it works is you must first have money in order to give money. Didn't they teach you that at school?";
+      if (mints hasnt scenery)
+        "Hey, you're not made of money. You only made a donation to get a box of mints. One donation is enough for tonight.";
+      give mints ~scenery;
+      move mints to player;
+      money.number = money.number - 5;
+      "As you now have plenty of money, you give the man five bucks. He gives you a big smile and hands you a box of mints. ~God bless you, kind sir.~^^~What? I didn't sneeze.~ The old man laughs politely and moves on to another patron to ask for a donation.";
+    Kiss:
+      "Ptew.";
+    Show:
+      if (noun == money)
+        "The old man looks at you with some interest. ~Would you like to make a donation to the Society for Retired Adventurers?~";
+      "The old man ignores you.";
+    Talk:
+      if (self hasnt general)
+      {
+        give self general;
+        "~Please give a donation to the Society for Retired Adventurers. All donations over two dollars are tax deductible. And, for this week only, any donation of five dollars or more gets a box of mints.~";
+      }
+      "~Can you give a donation to the Society for Retired Adventurers? You will feel good knowing that you've helped someone less fortunate than yourself.~";
+  ],
+has animate male;
+
+!----------------------------------------
+! Box of mints
+!----------------------------------------
+Object mints "box of mints" room04
+with
+  name 'plastic' 'box' 'of' 'mint' 'mints//p' 'candy' 'candies//p',
+  description
+  [;
+    if (self has scenery)
+    {
+      print "You can't see the candies clearly";
+      if (self hasnt general)
+        ". Perhaps you could ask the charity collector about them.";
+      ", but you know they're mints, because the charity collector told you so.";
+    }
+    "It's a small plastic box of mints with a label on it. They look cool and refreshing.";
+  ],
+  before
+  [;
+    Take:
+      if (self has scenery)
+        "~Oi, hands off. If you want a box of mints, you need to make a donation to our charity.~";
+  ],
+  after
+  [;
+    Eat:
+      if (player hasnt minty_breath)
+      {
+        give player minty_breath;
+        Achieved(0);
+        "You pop the mints into your rancid-smelling mouth and quickly kill off your bad breath. Your breath is now minty fresh.";
+      }
+      "Your breath is already minty fresh.";
+  ],
+  add_to_scope label,
+has edible scenery;
+
+!----------------------------------------
+! Label
+!----------------------------------------
+Object label "label" mints
+with
+  name 'label',
+  description
+  [;
+    print "It's a small label attached to the box of mints. It has a slogan of some sort printed on it.";
+    if (self hasnt general)
+      print " It wouldn't hurt to read it.";
+    "";
+  ],
+  before
+  [;
+    Read:
+      give self general;
+      "The label reads, 'Thank you for your donation to the Society for Retired Adventurers'.";
+  ],
+has legible;
+
+!========================================
+! Room 5: Convenience Store
+!========================================
+Object room05 "Convenience Store"
+with
+  description "You're inside Convenient Convenience, the 24-hour convenience store. A clerk sits behind the front counter near the doorway to the west.",
+  w_to room01,
+  out_to room01,
+  before
+  [;
+    Listen:
+      "It's really quiet.";
+  ],
+has light;
+
+!----------------------------------------
+! Convenience store
+!----------------------------------------
+Object "convenience store" room05
+with
+  name 'convenient' 'convenience' 'store' 'junk',
+  description "It's very brightly lit and has all sorts of junk that no one ever buys.",
+  before
+  [;
+    Exit:
+      <<Go w_obj>>;
+  ],
+has scenery;
+
+!----------------------------------------
+! Front counter
+!----------------------------------------
+Object counter "front counter" room05
+with
+  name 'front' 'counter',
+  description
+  [;
+    print "It's a plain white counter. ";
+    <<Search self>>;
+  ],
+  invent
+  [;
+    if (inventory_stage == 2 && (c_style & PARTINV_BIT))
+      rtrue;
+  ],
+has scenery supporter;
+
+!----------------------------------------
+! Cash register
+!----------------------------------------
+Object "cash register" counter
+with
+  description "Aw, come on, you've seen a cash register before.",
+  parse_name
+  [ nw;
+    nw = NextWord();
+    if (nw == 'cash')
+    {
+      if (NextWord() == 'register')
+        return 2;
+      else
+        if (TestScope(money))
+          return 0;
+        else
+          return 1;
+    }
+    if (nw == 'register')
+      return 1;
+    return 0;
+  ],
+  before
+  [;
+    Open:
+      "You reach across to open the cash register and the clerk springs to life like a Bollywood action hero. He whacks you on the hand with a block of wood and you quickly retract it before he has a chance to take a second blow.";
+  ],
+has static;
+
+!----------------------------------------
+! Machine
+!----------------------------------------
+Object "machine" counter
+with
+  name 'machine',
+  description "It looks like one of those instant lottery ticket machines that checks the bar code on a ticket to see if it's a winner. You can't use it yourself, though. You have to give your ticket to the clerk.",
+has static;
+
+!----------------------------------------
+! Sign
+!----------------------------------------
+Object sign "sign" counter
+with
+  name 'sign',
+  description "There's something printed on it in large lettering.",
+  before
+  [;
+    Read:
+      "The large lettering on the sign reads, 'INSTANT LOTTERIES'. You also notice some smaller lettering underneath that reads, 'Instant lottery tickets redeemed here'.";
+  ],
+has legible static;
+
+!----------------------------------------
+! Doorway
+!----------------------------------------
+Object "doorway" room05
+with
+  name 'doorway',
+  description "It leads out to the street.",
+has scenery;
+
+!----------------------------------------
+! Store clerk
+!----------------------------------------
+Object clerk "clerk" room05
+with
+  name 'clerk' 'man' 'indian',
+  description "The store clerk is a dark-skinned Indian fellow. This may sound like some sort of stereotype, but it's true. He looks scrawny and undernourished and has an air of indifference that only a convenience store clerk could exhibit.",
+  life
+  [;
+    Attack:
+      "The clerk presses a large red button under the counter. You'd better get out of here before the police arrive.";
+    Give:
+      if (noun == ticket)
+      {
+        if (panel has general)
+        {
+          move ticket to limbo;
+          move money to player;
+          "You hand the winning lottery ticket to the clerk and he scans the bar code in some fancy machine. 'TA DA!', declares the machine. The clerk opens the cash register, hands you one hundred dollars, tears the ticket in half and throws it in the bin. He does all this without cracking a smile or looking at you. Wow, that must have taken some training. ~Thank you, come again~, he drawls in a barely understandable Indian accent.";
+        }
+        "He takes one look at it and hands it back to you. ~You want me to scratch it for you?~ he drawls in a thick Indian accent.";
+      }
+      if (noun == money && money in player)
+        "You don't need to buy anything from here.";
+      "The store clerk ignores you. It would take too much effort to do anything else.";
+    Kiss:
+      "The corner of the store clerk's mouth moves ever so slightly. I think he may have cracked a smile.";
+    Show:
+      "His eyes barely flicker, then he returns to being bored.";
+    Talk:
+      if (self hasnt general)
+      {
+        give self general;
+        "You try to strike up a conversation. ~How are you on this fine evening? I'm partying tonight. I have so many girls chasing me that I have to beat 'em off with a stick.~^^~That's nice~, responds the clerk in an uninterested Indian accent.";
+      }
+      "The clerk yawns, as if just being alive is an effort.";
+  ],
+has animate male;
+
+!----------------------------------------
+! Magazine rack
+!----------------------------------------
+Object rack "magazine rack" room05
+with
+  parse_name
+  [ nw;
+    nw = NextWord();
+    if (nw == 'magazine' or 'magazines//p')
+    {
+      if (NextWord() == 'rack')
+        return 2;
+      return 0;
+    }
+    if (nw == 'rack')
+      return 1;
+    return 0;
+  ],
+  description "The magazine rack contains lots of interesting magazines. There's a big gap under the bottom row, presumably so people don't have to bend down too low to get their magazines.",
+  before
+  [;
+    LookUnder:
+      if (credit_card in nothing)
+      {
+        move credit_card to location;
+        "When you look under the magazine rack, you find a credit card.";
+      }
+      move dust to location;
+      "You look under the magazine rack again to see what else is there, but all you see is dust and dirt and a dead cockroach.";
+    Search:
+      print "Searching the magazine rack just reveals lots and lots of magazines.";
+      if (credit_card in nothing)
+        print " You wonder whether there's anything underneath it.";
+      if (dust in nothing)
+        print " You wonder whether there's anything else underneath it.";
+      "";
+  ],
+has static;
+
+!----------------------------------------
+! Magazines
+!----------------------------------------
+Object "magazines" room05
+with
+  name 'magazine' 'magazines//p' 'tabloid' 'tabloids//p',
+  description "There are magazines on cars, travel, computers, science, entertainment, health and just about anything else you can think of. There's also girlie magazines and tabloids about aliens and Elvis sightings. In fact, there's something for everyone.",
+  before
+  [;
+    Buy:
+      if (money notin player && credit_card notin player)
+        "You don't have any money.";
+      "You've got plenty of magazines at home. You don't need any more.";
+    Read:
+      "You've been in this store before. The clerk doesn't take kindly to you reading the magazines without paying for them.";
+    Take:
+      "There's no need to take any magazines. If you totally strike out tonight, then you can stay home all day tomorrow and read as many magazines as you want. But for now, let's stick to the plan.";
+  ],
+has legible pluralname scenery;
+
+!----------------------------------------
+! Gap
+!----------------------------------------
+Object "big gap" room05
+with
+  name 'big' 'gap' 'bottom' 'row',
+  description "You'll have to look under the magazine rack if you expect to see what's in the gap.",
+has scenery;
+
+!----------------------------------------
+! Dust, dirt & dead cockroach
+!----------------------------------------
+Object dust "dust, dirt and dead cockroach"
+with
+  name 'dust' 'dirt' 'dead' 'cockroach',
+  description "You're allergic to dust and dirt, and cockroaches are allergic to you.",
+  before
+  [;
+    Take:
+      "And how, exactly, is taking the dust or dead cockroach going to help you find a girlfriend?";
+  ],
+has scenery;
+
+!----------------------------------------
+! Credit card
+!----------------------------------------
+Object credit_card "credit card"
+with
+  name 'credit' 'card',
+  description
+  [;
+    print "It's a VEEZA credit card with all the owner's details embossed on it. ";
+    if (self hasnt general)
+      "You should read it to see who owns it.";
+    "Don't get any funny ideas, Danny. There's no way you could pass it off as your own.";
+  ],
+  before
+  [;
+    Read:
+      if (self hasnt general)
+      {
+        give self general;
+        print "You read the following information on the front of the card:";
+      }
+      else
+        print "The information on the card hasn't changed. It still reads:";
+      "^'AMELIA DICKINSON^#4293 1891 0008^Premium Member'";
+  ],
+has legible;
+
+!----------------------------------------
+! Money
+!----------------------------------------
+Object money "money"
+with
+  name 'money' 'cash' 'dollar' 'dollars//p' 'buck' 'bucks//p' 'donation' 'two' '2//' 'five' '5//',
+  article "some",
+  description
+  [;
+    "You count ", self.number, " dollars in cash. That's more than enough to get you by for the night.";
+  ],
+  before
+  [;
+    Count:
+      <<Examine self>>;
+  ],
+  number 100,
+has;
+
+!========================================
+! Room 6: Outside Acacia Fashions
+!========================================
+Object room06 "Outside Acacia Fashions"
+with
+  description "You're standing outside Acacia Fashions, a clothing store that specialises in the most elegant formal wear. The store is empty at the moment and the door is locked. Maybe you should head back east to the street.",
+  e_to room01,
+  before
+  [;
+    Listen:
+      "The street is quiet at this time of night.";
+  ],
+has light;
+
+!----------------------------------------
+! Clothing store
+!----------------------------------------
+Object "clothing store" room06
+with
+  name 'clothing' 'store' 'acacia' 'fashions',
+  description "This store sells designer clothes, which are very hip...and very expensive. Obviously, you're not a regular customer. You're not even an irregular customer. It's dark inside, except for a dim security light.",
+has scenery;
+
+!----------------------------------------
+! Dim security light
+!----------------------------------------
+Object "dim security light" room06
+with
+  name 'dim' 'security' 'light',
+  description "You can only see that it's inside the store.",
+has scenery;
+
+!----------------------------------------
+! Clothing store door
+!----------------------------------------
+Object store_door "door" room06
+with
+  name 'door' 'entrance',
+  description "It's the entrance to Acacia Fashions. You can see a sign hanging on the inside of the door.",
+  before
+  [;
+    Attack:
+      print "You can bang on the door 'til the cows come home, but no one's going to open it. The store is closed. ";
+      if (sign hasnt general)
+        "If you'd read the sign, you would have realised that.";
+      else
+        "You should know that, having read the sign and all.";
+  ],
+has door lockable locked openable scenery;
+
+!----------------------------------------
+! Sign on clothing store door
+!----------------------------------------
+Object door_sign "sign on the door" room06
+with
+  name 'sign' 'string' 'letters//p' 'lettering',
+  description "The sign is hanging from a string. It's written in bold white letters on a red background.",
+  before
+  [;
+    Read:
+      give self general;
+      "The sign reads, 'CLOSED'. You aren't surprised. It's late at night, after all.";
+    Take:
+      "It's on the other side of the door.";
+  ],
+has legible scenery;
+
+!========================================
+! Room 7: Outside High Roller Nightclub
+!========================================
+Object room07 "Outside High Roller Nightclub"
+with
+  description "You're outside the entrance to the High Roller nightclub. This is not just another club. It has a much fancier atmosphere than any club you've ever been in. You can enter the club to the south or return to the street to the north.",
+  n_to room01,
+  s_to
+  [;
+    if (bouncer hasnt general)
+      "You can't just walk in. You're not a member. You'll have to convince the bouncer to let you in.";
+    print "~Welcome back, sir.~^";
+    return room08;
+  ],
+  in_to
+  [;
+    <<Go s_obj>>;
+  ],
+  before
+  [;
+    Listen:
+      "The street is quiet at this time of night.";
+  ],
+has light;
+
+!----------------------------------------
+! Entrance to the High Roller
+!----------------------------------------
+Object "entrance to the High Roller" room07
+with
+  name 'entrance' 'high' 'roller' 'lounge' 'elite' 'night' 'club',
+  description "This is more of a lounge than a nightclub. It's where the rich and famous socialise. As you are neither rich nor famous, you've never done any socialising here.",
+  before
+  [;
+    Enter:
+      <<Go s_obj>>;
+  ],
+has scenery;
+
+!----------------------------------------
+! Bouncer
+!----------------------------------------
+Object bouncer "bouncer" room07
+with
+  name 'bouncer' 'man' 'guard' 'doorman',
+  initial "A bouncer is here, guarding the entrance to the nightclub.",
+  description
+  [;
+    print "This well-dressed bouncer is a big, burly Pacific Islander, probably Maori. He carefully guards the entrance to the High Roller nightclub.";
+    if (self has general)
+      print " This club is strictly for the upper-class members of society and the bouncer's job is to prevent any riff-raff from entering. Try talking to him and maybe he will let you in.";
+    "";
+  ],
+  life
+  [;
+    Ask:
+      switch (second)
+      {
+        'club', 'nightclub', 'high', 'roller', 'lounge':
+          "~Members only. If you're a member, please show me your membership card and I'll let you in.~";
+        'bouncer', 'riff-raff':
+          "~It's my job to keep the riff-raff out...and I'm pretty good at my job.~";
+        'member', 'membership':
+          "~Ask at the front desk. Oh, that's right. You can't get to the front desk can you, because you're not a member.~ He gives a wry smile.";
+        'dress', 'code':
+          "~The High Roller's dress code is pretty simple. No entry unless you're wearing a glitzy suit.~";
+        default:
+          "He crosses his arms and flexes his muscles. ~Go away before I'm tempted to tread on you.~";
+      }
+    Attack:
+      "Are you crazy? This bouncer outweighs you by at least 50 kilos and you want to start a fight? You need your head read.";
+    Kiss:
+      "It doesn't matter if you're a good kisser or not, that won't get you into the High Roller.";
+    Talk:
+      if (player hasnt nice_clothes)
+        "You try to cajole your way in. ~I'm sorry sir, I can't let you in here dressed like that. We have a dress code and it's my job to keep people like you out of here. Now back off before I bend you in half.~^^Hmmm, let's stop and consider this. He won't let you in because you're dressed like an idiot. Maybe you can do something about that.";
+      if (self hasnt general)
+      {
+        give self general;
+        print "~Good evening sir. Wow, that's quite an exquisite suit.~^^~I only buy the very best. That's why I'm the king of the night scene.~^^~Please forgive me, but I don't seem to recognise you. Have you been here before?~^^~No, I usually go to much classier clubs than this. I just thought I'd pop in to see how the poor people party.~^^The bouncer truly believes you're an idiot, but pretends to like you. That's his job. ~I, uh, well, er...that's a nice suit, I can't deny that. Right this way, sir.~^";
+        PlayerTo(room08);
+        rtrue;
+      }
+      print "~Good evening sir. I see you've returned. Step right this way.~ Wow, it seems you've made yourself known around here. You walk through the doorway and make your way to the lounge.^";
+      PlayerTo(room08);
+      rtrue;
+  ],
+has animate male;
+
+!========================================
+! Room 8: Lounge
+!========================================
+Object room08 "Lounge"
+with
+  description "You're in the lounge in the High Roller nightclub. Wow! This is the most luxurious place you've ever seen. It's more than just a lounge, it's practically a palace. You've been in many bars and clubs, but this is by far the most posh. The exit is to the north.",
+  n_to room07,
+  out_to room07,
+  before
+  [;
+    Listen:
+      "The background music is soft and romantic.";
+  ],
+has light;
+
+!----------------------------------------
+! High Roller lounge
+!----------------------------------------
+Object "High Roller lounge" room08
+with
+  name 'high' 'roller' 'lounge' 'decor',
+  description "You are dazzled by the refined decor. It sure is appropriately named.",
+  before
+  [;
+    Exit:
+      <<Go n_obj>>;
+  ],
+has scenery;
+
+!----------------------------------------
+! Diamond ring
+!----------------------------------------
+Object ring "diamond ring" room08
+with
+  name 'diamond' 'ring' 'small' 'shiny' 'object',
+  initial "You see a small, shiny object on the floor here.",
+  description "It's a beautiful diamond ring. It looks like an engagement ring - and a very expensive one at that. Whoever dropped it must be frantic.",
+  before
+  [;
+    Read:
+      "It's very tiny, but it appears to have some initials engraved on the inside of the band. It looks like 'JS'.";
+    Wear:
+      "It's too small for any of your fingers.";
+  ],
+  after
+  [;
+    Take:
+      if (self hasnt moved)
+        "As you pick up the diamond ring, you remember the reward for returning the lost credit card. Hopefully, the owner of this ring will be just as generous.";
+  ],
+has legible clothing;
+
+!========================================
+! Room 9: Limbo
+!========================================
+Object limbo;
+
+!========================================
+! Entry point routines
+!========================================
+[ ChooseObjects obj code;
+  if (code == 2)
+  {
+    ! Stage 1: Disambiguation
+    if (action_to_be == ##Take && obj notin player)
+      return 1; !Appropriate
+    if (action_to_be == ##Drop && obj in player && obj hasnt worn)
+      return 1; !Appropriate
+    return 0; !Inappropriate
+  }
+  ! Stage 2: Processing an "all"
+  if (obj has scenery or concealed or static or animate)
+    return 2; !Force exclusion
+  if (action_to_be == ##Take && obj ~= player && obj notin player)
+    return 1; !Force inclusion
+  if (action_to_be == ##Drop && obj in player && obj hasnt worn)
+    return 1; !Force inclusion
+  return 0; !Accept parser's decision
+];
+
+[ PrintTaskName task_number;
+  switch (task_number)
+  {
+    0: "for freshening your breath";
+    1: "for getting some nice clothes";
+    2: "for learning some social skills";
+    3: "for getting a girl's phone number";
+  }
+];
+
+!========================================
+! Grammar
+!========================================
+Include "grammar";
+
+Extend 'lock' first
+  * noun -> Lock;
+
+Extend 'read' first
+  * legible -> Read
+  * noun -> Read;
+
+Extend only 'speak' replace
+  * -> Talk
+  * 'to'/'with' creature -> Talk
+  * 'to'/'with' noun -> Talk
+  * 'to'/'with' creature 'about' topic -> Ask
+  * 'to'/'with' noun 'about' topic -> Ask;
+
+Extend 'unlock' first
+  * noun -> Unlock;
+
+Verb meta 'about' 'info'
+  * -> About;
+
+Verb 'cash'
+  * noun -> Redeem
+  * noun 'in' -> Redeem
+  * 'in' noun -> Redeem;
+
+Verb 'contribute' 'donate' = 'give';
+
+Verb 'count'
+  * noun -> Count;
+
+Verb 'credits'
+  * -> Credits;
+
+Verb 'dance'
+  * -> Dance;
+
+Verb 'help'
+  * -> Help;
+
+Verb 'knock' 'bang' 'rap' 'tap'
+  * 'on' noun -> Attack
+  * noun -> Attack;
+
+Verb 'make' = 'give';
+
+Verb 'pinch' = 'squeeze';
+
+Verb 'redeem' 'reclaim' 'scan'
+  * noun -> Redeem;
+
+Verb 'scratch'
+  * noun -> Scratch;
+
+Verb 'smoke'
+  * noun -> Smoke;
+
+Verb 'status'
+  * -> Status;
+
+Verb 'talk' 'babble' 'chat' 'communicate' 'converse' 'gab' 'gossip'
+  * -> Talk
+  * 'to'/'with' creature -> Talk
+  * 'to'/'with' noun -> Talk
+  * 'to'/'with' creature 'about' topic -> Ask
+  * 'to'/'with' noun 'about' topic -> Ask;
+
+!========================================
+! Actions
+!========================================
+[ AboutSub;
+  print "This game was written for ParserComp 2021. It was inspired by an unpublished Inform 6 game written by Michael Marchetti as an assignment for CIS 487/587 at the University of Michigan-Dearborn in Spring 1999. The game has been rewritten from scratch and considerably expanded, but the concept and some of the puzzles are basically the same.^^";
+  <<Credits>>;
+];
+
+[ CountSub;
+  if (ObjectIsUntouchable(noun, true))
+    "You count your lucky stars.";
+  if (noun has pluralname)
+    "There's more than one.";
+  "There's only one.";
+];
+
+[ CreditsSub;
+  "Concept by Michael Marchetti.^Game design and coding by Garry Francis.^Play testing by Andrew Schultz, Dee Cooke, Edo Rajh and Tristin Grizel Dean.";
+];
+
+[ DanceSub;
+  "You drag out your best John Travolta impersonation, but you still look like a goofball.";
+];
+
+[ HelpSub;
+  "Follow the advice that your neighbour gave you and you can't go wrong.";
+];
+
+[ LockSub k;
+  if (ObjectIsUntouchable(noun))
+    return;
+  if (noun hasnt lockable)
+    return L__M(##Lock, 1, noun);
+  if (noun has locked)
+    print_ret (The)noun, " is already locked.";
+  k = RunRoutines(noun, with_key);
+  if (second == nothing && k ~= nothing && k in player)
+  {
+    second = k;
+    print "(with ", (the)second, ")^";
+  }
+  if (noun has open)
+    return L__M(##Lock, 3, noun);
+  if (second == nothing)
+    "You'll have to tell me what to lock ", (the)noun, " with.";
+  if (second ~= k)
+    return L__M(##Lock, 4, second);
+  give noun locked;
+  if (AfterRoutines() || keep_silent)
+    return;
+  L__M(##Lock, 5, noun);
+];
+
+[ ReadSub;
+  if (ObjectIsUntouchable(noun, true))
+    "I suppose you read tea leaves, too";
+  "There's nothing legible on ", (ThatOrThose)noun, ".";
+];
+
+[ RedeemSub;
+  if (ObjectIsUntouchable(noun, true))
+    "In your dreams.";
+  "You can't redeem ", (ThatOrThose)noun, ".";
+];
+
+[ ScratchSub;
+  if (ObjectIsUntouchable(noun, true))
+    "The only thing you can scratch is an itch.";
+  "There's no point scratching ", (ThatOrThose)noun, ".";
+];
+
+[ SmokeSub;
+  "You can't smoke that.";
+];
+
+[ StatusSub;
+  if (player hasnt minty_breath)
+    print "Problem: You have very bad breath.^";
+  else
+    print "Solved: Your breath is minty fresh.^";
+  if (player hasnt nice_clothes)
+    print "Problem: Your clothes are outdated and dorky.^";
+  else
+    print "Solved: Your new clothing is very classy.^";
+  if (player hasnt social_skills)
+    "Problem: Your social skills are worse than that of a brain-dead donkey.";
+  else
+    "Solved: You conduct yourself with grace, elegance and class.";
+];
+
+[ TalkSub;
+  if (noun == nothing)
+    "You start talking to no one in particular.";
+  if (noun == player)
+    "You start talking to yourself, but it's a one-sided conversation.";
+  if (RunLife(noun, ##Talk))
+    rtrue;
+  print (The)noun, " is not very talkative.";
+  "";
+];
+
+[ UnlockSub k;
+  if (ObjectIsUntouchable(noun))
+    return;
+  if (noun hasnt lockable)
+    return L__M(##Unlock, 1, noun);
+  if (noun hasnt locked)
+    return L__M(##Unlock, 2, noun);
+  k = RunRoutines(noun, with_key);
+  if (second == nothing && k ~= nothing && k in player)
+  {
+    second = k;
+    print "(with ", (the)second, ")^";
+  }
+  if (second == nothing)
+    "You'll have to tell me what to unlock ", (the)noun, " with.";
+  if (second ~= k)
+    return L__M(##Unlock, 3, second);
+  give noun ~locked;
+  if (AfterRoutines() || keep_silent)
+    return;
+  L__M(##Unlock, 4, noun);
+];
+
+End;
