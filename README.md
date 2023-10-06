@@ -10,7 +10,7 @@ Tonight is going to be different. After picking up some advice from your neighbo
 
 As you stand outside the front lobby of the nightclub, you can't help thinking that you've forgotten something...
 
-This is a traditional text adventure that was written for [ParserComp 2021](https://itch.io/jam/parsercomp-2021), 30 April 2021 to 30 June 2021. The game is hosted at [Danny Dipstick](https://warrigal.itch.io/danny-dipstick).
+This is a traditional text adventure that was written for [ParserComp 2021](https://itch.io/jam/parsercomp-2021), 30 April 2021 to 30 June 2021.
 
 ## Release notes
 
